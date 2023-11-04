@@ -43,7 +43,7 @@ app.get('/users', (req, res) => {
 app.post('/users', (req, res) => {
     const { email, password, username, token } = req.body;
 
-    if (!email || !password || !token) {
+    if (!username || !email || !password || !token) {
         return res.status(400).json({ error: 'Brak wymaganych danych' });
     }
     const query = 'INSERT INTO Users (email, password, username, token) VALUES (?, ?, ?, ?)';

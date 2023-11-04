@@ -9,7 +9,7 @@ import { SERVER_PATH } from '../config.js';
 import { SecondaryButton } from '../components/SecondaryButton.js';
 
 export default function Login({ navigation }) {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     return (
@@ -17,9 +17,9 @@ export default function Login({ navigation }) {
             <Text style={styles.h2}>Login</Text>
             <TextInput 
                 style={styles.input}
-                placeholder='Username'
-                onChangeText={text => setUsername(text)}
-                defaultValue={username}
+                placeholder='Email'
+                onChangeText={text => setEmail(text)}
+                defaultValue={email}
             />
             <TextInput 
                 style={styles.input}
@@ -31,20 +31,24 @@ export default function Login({ navigation }) {
             />
             <View style={styles.btnsContainer}>
                 <SecondaryButton text="Register "onPress={() => navigation.navigate('Register')}/>
-                <PrimaryButton text='Login' onPress={() => LoginUser(username, password, navigation)} />
+                <PrimaryButton text='Login' onPress={() => LoginUser(email, password, navigation)} />
             </View>
             <StatusBar style="auto" />  
         </View>
     );
 }
 
-const isUsernameValid = (str) => {
-    return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
-}
+const isEmailValid = (str) => {
+    return String(str)
+        .toLowerCase()
+        .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+  };
 
-const LoginUser = async (username, password, navigation) => {
-    if (password.length < 6 || !isUsernameValid(username)){
-        alert("Password must be at least 6 characters long and username must not contain special characters");
+const LoginUser = async (email, password, navigation) => {
+    if (password.length < 6 || !isEmailValid(email)){
+        alert("Password must be at least 6 characters long and email must be valid");
         return;
     }
 
@@ -54,7 +58,7 @@ const LoginUser = async (username, password, navigation) => {
         .then(res => res.data)
         .catch(err => console.error(err));
 
-        const user = users.find(user => user.username === username && user.password === password);
+        const user = users.find(user => user.email === email && user.password === password);
         
         if (user) {
             alert("Login successful");
