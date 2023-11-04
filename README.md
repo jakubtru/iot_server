@@ -1,7 +1,7 @@
 # IoT Application 
 
 ## Getting started
-1. Install Expo Go application on ypur device
+1. Install Expo Go application on your device
 2. Install all dependencies:
 ```js
 npm i
