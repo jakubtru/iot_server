@@ -1,31 +1,29 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import axios from 'axios';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const fetchUsers = async () => {
-  const users = await axios
-  .get('http://192.168.0.145:3000/users')
-  .then(res => res.data)
-  .catch(err => console.error(err));
-  
-  return users;
-}
+import { SERVER_PATH } from './config.js';
+
+import MainPanel from './screens/MainPanel.js';
+import Register from './screens/Register.js';
+import Login from './screens/Login.js';
+
+import { UserContext } from './contexts.js';
+
+const Stack = createNativeStackNavigator();
+
 
 export default function App() {
-  const [users, setUsers] = useState(null);
-
-  useEffect(() => {
-    const users = fetchUsers()
-      .then(users => setUsers(users));
-  }, []);
-
   return (
-    <View style={styles.container}>
-      {console.log(users[0])}
-      <Text></Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName='Login' screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Main" component={MainPanel} />
+        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Login" component={Login} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
