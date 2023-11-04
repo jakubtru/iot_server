@@ -1,7 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { PermissionsAndroid, Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import axios from 'axios';
+
+import WifiManager from 'react-native-wifi-reborn';
 
 import { PrimaryButton } from '../components/PrimaryButton.js';
 
@@ -11,6 +13,44 @@ import { SecondaryButton } from '../components/SecondaryButton.js';
 export default function Login({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    const [ssid, setSSID] = useState('');
+
+    useEffect(() => {
+        permission().then(() =>{
+          WifiManager.getCurrentWifiSSID()
+          .then(ssid => {
+              console.log("Your current SSID: " + ssid);
+              setSSID(ssid);
+            },() => console.log('Cannot get current SSID'))
+            .catch(error => {
+              console.log(error);
+            }
+          );
+        }).catch(error => {
+          console.log(error);
+        }
+        );}, []);
+
+    const permission = async () => {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: "Location Permission is required for Wifi connections",
+            message:
+              "This app requires access to your location.",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK"
+          }
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log("You can use the location");
+        } else {
+          console.log("Location permission denied");
+        }
+      }
+  
+
 
     return (
         <View style={styles.container}>
@@ -33,6 +73,7 @@ export default function Login({ navigation }) {
                 <SecondaryButton text="Register "onPress={() => navigation.navigate('Register')}/>
                 <PrimaryButton text='Login' onPress={() => LoginUser(email, password, navigation)} />
             </View>
+            <Text>SSID: {ssid}</Text>
             <StatusBar style="auto" />  
         </View>
     );
