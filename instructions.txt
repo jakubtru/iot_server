@@ -1,0 +1,13 @@
+--- Server ---
+npm i
+node server.js
+
+--- Application for IoT ---
+cd IoTApp
+npm i
+npx expo
+
+```
+change IP in config.js -> create a new file in IoTApp/config.js
+export const SERVER_PATH = 'http://IP:3000';
+```
