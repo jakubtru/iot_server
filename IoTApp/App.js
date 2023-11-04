@@ -10,7 +10,7 @@ import MainPanel from './screens/MainPanel.js';
 import Register from './screens/Register.js';
 import Login from './screens/Login.js';
 
-import { UserContext } from './contexts.js';
+import AppContext from './contexts.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,7 +19,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName='Login' screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Main" component={MainPanel} />
+        <Stack.Screen name="Main">{(props) => <MainPanel {...props}/>}</Stack.Screen>
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Login" component={Login} />
       </Stack.Navigator>

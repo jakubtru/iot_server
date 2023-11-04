@@ -23,17 +23,50 @@ export default function Login({ navigation }) {
             />
             <TextInput 
                 style={styles.input}
+                textContentType='password'
+                secureTextEntry={true}
                 placeholder='Password'
                 onChangeText={text => setPassword(text)}
                 defaultValue={password} 
             />
             <View style={styles.btnsContainer}>
                 <SecondaryButton text="Register "onPress={() => navigation.navigate('Register')}/>
-                <PrimaryButton text='Login' onPress={() => console.log(username + " " + password)} />
+                <PrimaryButton text='Login' onPress={() => LoginUser(username, password, navigation)} />
             </View>
             <StatusBar style="auto" />  
         </View>
     );
+}
+
+const isUsernameValid = (str) => {
+    return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
+}
+
+const LoginUser = async (username, password, navigation) => {
+    if (password.length < 6 || !isUsernameValid(username)){
+        alert("Password must be at least 6 characters long and username must not contain special characters");
+        return;
+    }
+
+    try {
+        const users = await axios
+        .get(SERVER_PATH + '/users')
+        .then(res => res.data)
+        .catch(err => console.error(err));
+
+        const user = users.find(user => user.username === username && user.password === password);
+        
+        if (user) {
+            alert("Login successful");
+            navigation.navigate('Main', { userID: user.userID });
+        } else {
+            alert("Wrong username or password");
+        }
+    } catch (error) {
+        console.error(error);
+    }
+    
+
 }
 
 const styles = StyleSheet.create({

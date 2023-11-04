@@ -1,1 +1,1 @@
-export const SERVER_PATH = 'http://192.168.68.120:3000';
+export const SERVER_PATH = 'http://192.168.68.110:3000';
