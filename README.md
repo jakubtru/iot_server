@@ -1,6 +1,6 @@
 # IoT Application 
 
-## Getting started
+## Getting started with Expo Go
 1. Install Expo Go application on your device
 2. Install all dependencies:
 ```js
@@ -27,3 +27,16 @@ npx expo start
 ```
 6. Open Expo Go on your phone and follow instructions 
    
+## Builds
+1. Make sure you have expo-cli and all dependencies installed
+```js
+cd IoTApp
+npm i
+```
+2. Make sure you have user path set to [...]/Android/Sdk/platform-tools
+3. Make sure you have ANDROID_HOME set to [...]/Android/Sdk
+4. Build application
+```js
+npx expo probuild
+npx expo run:android
+```
