@@ -2,7 +2,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { PermissionsAndroid, Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import axios from 'axios';
-
 import WifiManager from 'react-native-wifi-reborn';
 
 import { PrimaryButton } from '../components/PrimaryButton.js';
@@ -16,10 +15,10 @@ export default function Login({ navigation }) {
 
     const [ssid, setSSID] = useState('');
 
+
     useEffect(() => {
-        permission().then(() =>{
-          WifiManager.getCurrentWifiSSID()
-          .then(ssid => {
+          permission().then(() =>{
+          WifiManager.getCurrentWifiSSID().then(ssid => {
               console.log("Your current SSID: " + ssid);
               setSSID(ssid);
             },() => console.log('Cannot get current SSID'))
@@ -27,29 +26,32 @@ export default function Login({ navigation }) {
               console.log(error);
             }
           );
-        }).catch(error => {
+        }, () => console.log('Cannot get permission'))
+        .catch(error => {
           console.log(error);
-        }
-        );}, []);
+        });
+      
+      }, []);
+
 
     const permission = async () => {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: "Location Permission is required for Wifi connections",
-            message:
-              "This app requires access to your location.",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK"
-          }
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log("You can use the location");
-        } else {
-          console.log("Location permission denied");
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: "Location Permission is required for Wifi connections",
+          message:
+            "This app requires access to your location.",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK"
         }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("You can use the location");
+      } else {
+        console.log("Location permission denied");
       }
-  
+    }
+
 
 
     return (
@@ -92,14 +94,12 @@ const LoginUser = async (email, password, navigation) => {
         alert("Password must be at least 6 characters long and email must be valid");
         return;
     }
-
+    
     try {
         const users = await axios
         .get(SERVER_PATH + '/users')
-        .then(res => res.data)
-        .catch(err => console.error(err));
-
-        const user = users.find(user => user.email === email && user.password === password);
+        .then(res => res.data, err => console.error(err))
+        const user = users?.find(user => user.email === email && user.password === password);
         
         if (user) {
             alert("Login successful");
