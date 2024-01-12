@@ -2,13 +2,20 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs').promises;
 const path = require('path');
-const app = express();
-const PORT = 3000;
+const cors = require('cors');
 const DATA_DIR = './data';
 const sqlite3 = require('sqlite3').verbose();
 const mqttClient = require('./mqtt_client');
 
+const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(bodyParser.json());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+}));
+
 
 
 let db = new sqlite3.Database('./db/iot_project.db', sqlite3.OPEN_READWRITE, (err) => {
