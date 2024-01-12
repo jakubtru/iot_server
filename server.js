@@ -6,8 +6,10 @@ const app = express();
 const PORT = 3000;
 const DATA_DIR = './data';
 const sqlite3 = require('sqlite3').verbose();
+const mqttClient = require('./mqtt_client');
 
 app.use(bodyParser.json());
+
 
 let db = new sqlite3.Database('./db/iot_project.db', sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
@@ -15,6 +17,7 @@ let db = new sqlite3.Database('./db/iot_project.db', sqlite3.OPEN_READWRITE, (er
     }
     console.log('Connected to the database.');
 });
+
 
 
 app.get('/', (req, res) => {
@@ -36,7 +39,7 @@ app.get('/users', (req, res) => {
 app.post('/users', (req, res) => {
     const { email, password, username, token } = req.body;
 
-    if (!email || !password || !token) {
+    if (!username || !email || !password || !token) {
         return res.status(400).json({ error: 'Brak wymaganych danych' });
     }
     const query = 'INSERT INTO Users (email, password, username, token) VALUES (?, ?, ?, ?)';
@@ -90,6 +93,20 @@ app.delete('/users/:userID', (req, res) => {
 
 app.get('/sensors', (req, res) => {
     db.all('SELECT * FROM Sensor', (err, rows) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).json({ error: 'Błąd bazy danych' });
+            return;
+        }
+        res.json(rows);
+    });
+});
+
+
+app.get('/sensors/:userID', (req, res) => {
+    const id = req.params.userID;
+    const query = 'SELECT sensorID, name FROM Sensor NATURAL JOIN "User-Sensor Linkage" WHERE userID = ?';
+    db.all(query, [id], (err, rows) => {
         if (err) {
             console.error(err.message);
             res.status(500).json({ error: 'Błąd bazy danych' });
@@ -161,6 +178,19 @@ app.get('/linkages', (req, res) => {
     });
 });
 
+app.get('/linkages/:userID', (req, res) => {
+    const userID = req.params.userID
+    const query = 'SELECT * FROM "User-Sensor Linkage" WHERE userID = ?';
+    db.all(query, [userID] ,(err, rows) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).json({ error: 'Błąd bazy danych' });
+            return;
+        }
+        res.json(rows);
+    });
+});
+
 app.post('/linkages', (req, res) => {
     const { userID, sensorID, role } = req.body;
 
@@ -217,55 +247,55 @@ app.delete('/linkages/:userID/:sensorID', (req, res) => {
         res.json({ message: 'Powiązanie zostało usunięte' });
     });
 });
+//
+// app.get('/readings', (req, res) => {
+//     db.all('SELECT * FROM Readings', (err, rows) => {
+//         if (err) {
+//             console.error(err.message);
+//             res.status(500).json({ error: 'Błąd bazy danych' });
+//             return;
+//         }
+//         res.json(rows);
+//     });
+// });
+//
+// app.post('/readings', (req, res) => {
+//     const { temperature, humidity, timestamp, sensorID } = req.body;
+//
+//     if (!temperature || !humidity || !timestamp || !sensorID) {
+//         return res.status(400).json({ error: 'Brak wymaganych danych' });
+//     }
+//
+//     const query = 'INSERT INTO Readings (temperature, humidity, timestamp, sensorID) VALUES (?, ?, ?, ?)';
+//     db.run(query, [temperature, humidity, timestamp, sensorID], function (err) {
+//         if (err) {
+//             console.error(err.message);
+//             return res.status(500).json({ error: 'Błąd bazy danych' });
+//         }
+//         res.status(201).json({ message: 'Nowy odczyt został dodany' });
+//     });
+// });
+//
+// app.delete('/readings/:readingID', (req, res) => {
+//     const readingID = req.params.readingID;
+//     const query = 'DELETE FROM Readings WHERE readingID = ?';
+//     db.run(query, [readingID], function (err) {
+//         if (err) {
+//             console.error(err.message);
+//             return res.status(500).json({ error: 'Błąd bazy danych' });
+//         }
+//
+//         if (this.changes === 0) {
+//             return res.status(404).json({ error: 'Odczyt nie istnieje' });
+//         }
+//         res.json({ message: 'Odczyt został usunięty' });
+//     });
+// });
 
-app.get('/readings', (req, res) => {
-    db.all('SELECT * FROM Readings', (err, rows) => {
-        if (err) {
-            console.error(err.message);
-            res.status(500).json({ error: 'Błąd bazy danych' });
-            return;
-        }
-        res.json(rows);
-    });
-});
-
-app.post('/readings', (req, res) => {
-    const { temperature, humidity, timestamp, sensorID } = req.body;
-
-    if (!temperature || !humidity || !timestamp || !sensorID) {
-        return res.status(400).json({ error: 'Brak wymaganych danych' });
-    }
-
-    const query = 'INSERT INTO Readings (temperature, humidity, timestamp, sensorID) VALUES (?, ?, ?, ?)';
-    db.run(query, [temperature, humidity, timestamp, sensorID], function (err) {
-        if (err) {
-            console.error(err.message);
-            return res.status(500).json({ error: 'Błąd bazy danych' });
-        }
-        res.status(201).json({ message: 'Nowy odczyt został dodany' });
-    });
-});
-
-app.delete('/readings/:readingID', (req, res) => {
-    const readingID = req.params.readingID;
-    const query = 'DELETE FROM Readings WHERE readingID = ?';
-    db.run(query, [readingID], function (err) {
-        if (err) {
-            console.error(err.message);
-            return res.status(500).json({ error: 'Błąd bazy danych' });
-        }
-
-        if (this.changes === 0) {
-            return res.status(404).json({ error: 'Odczyt nie istnieje' });
-        }
-        res.json({ message: 'Odczyt został usunięty' });
-    });
-});
-
-app.get('/readings/:sensorID', (req, res) => {
+app.get('/readings/temperature/:sensorID', (req, res) => {
     const sensorID = req.params.sensorID;
 
-    const query = 'SELECT * FROM Readings WHERE sensorID = ?';
+    const query = 'SELECT * FROM TemperatureReadings WHERE sensorID = ?';
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
             console.error(err.message);
@@ -275,6 +305,53 @@ app.get('/readings/:sensorID', (req, res) => {
         res.json(rows);
     });
 });
+
+app.get('/readings/humidity/:sensorID', (req, res) => {
+    const sensorID = req.params.sensorID;
+
+    const query = 'SELECT * FROM TemperatureReadings WHERE sensorID = ?';
+    db.all(query, [sensorID], (err, rows) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).json({ error: 'Błąd bazy danych' });
+            return;
+        }
+        res.json(rows);
+    });
+});
+
+app.get('/readings/:sensorID/newest', (req, res) => {
+    const sensorID = req.params.sensorID;
+
+    const query1 = 'SELECT * FROM TemperatureReadings WHERE sensorID = ? ORDER BY timestamp DESC LIMIT 1';
+    const query2 = 'SELECT * FROM HumidityReadings WHERE sensorID = ? ORDER BY timestamp DESC LIMIT 1';
+
+    let temperatureReading, humidityReading;
+
+    db.get(query1, [sensorID], (err, temperatureRow) => {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        temperatureReading = temperatureRow;
+
+        db.get(query2, [sensorID], (err, humidityRow) => {
+            if (err) {
+                console.error(err.message);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            humidityReading = humidityRow;
+
+            const combinedReading = {
+                temperature: temperatureReading ? temperatureReading.reading : null,
+                humidity: humidityReading ? humidityReading.reading : null,
+            };
+            res.json(combinedReading);
+        });
+    });
+});
+
 
 app.listen(PORT, () => {
     console.log(`Serwer działa na porcie ${PORT}`);
