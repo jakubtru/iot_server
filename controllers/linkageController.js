@@ -11,7 +11,7 @@ app.get('', (req, res) => {
     db.all('SELECT * FROM "User-Sensor Linkage"', (err, rows) => {
         if (err) {
             console.error(err.message);
-            res.status(500).json({ error: 'Błąd bazy danych' });
+            res.status(500).json({error: 'Błąd bazy danych'});
             return;
         }
         res.json(rows);
@@ -21,10 +21,10 @@ app.get('', (req, res) => {
 app.get('/:userID', (req, res) => {
     const userID = req.params.userID
     const query = 'SELECT * FROM "User-Sensor Linkage" WHERE userID = ?';
-    db.all(query, [userID] ,(err, rows) => {
+    db.all(query, [userID], (err, rows) => {
         if (err) {
             console.error(err.message);
-            res.status(500).json({ error: 'Błąd bazy danych' });
+            res.status(500).json({error: 'Błąd bazy danych'});
             return;
         }
         res.json(rows);
@@ -32,115 +32,135 @@ app.get('/:userID', (req, res) => {
 });
 
 app.post('', (req, res) => {
-    const { userID, sensorID, role } = req.body;
+    const {userID, sensorID, role} = req.body;
 
     if (!userID || !sensorID || !role) {
-        return res.status(400).json({ error: 'Brak wymaganych danych' });
+        return res.status(400).json({error: 'Brak wymaganych danych'});
     }
 
     const query = 'INSERT INTO "User-Sensor Linkage" (userID, sensorID, role) VALUES (?, ?, ?)';
     db.run(query, [userID, sensorID, role], function (err) {
         if (err) {
             console.error(err.message);
-            return res.status(500).json({ error: 'Błąd bazy danych' });
+            return res.status(500).json({error: 'Błąd bazy danych'});
         }
 
-        res.status(201).json({ message: 'Nowe powiązanie zostało utworzone' });
+        res.status(201).json({message: 'Nowe powiązanie zostało utworzone'});
     });
 });
 
 app.put('/:userID/:sensorID', (req, res) => {
     const userID = req.params.userID;
     const sensorID = req.params.sensorID;
-    const { role } = req.body;
+    const {role} = req.body;
 
     const query = 'UPDATE "User-Sensor Linkage" SET role = ? WHERE userID = ? AND sensorID = ?';
     db.run(query, [role, userID, sensorID], function (err) {
         if (err) {
             console.error(err.message);
-            return res.status(500).json({ error: 'Błąd bazy danych' });
+            return res.status(500).json({error: 'Błąd bazy danych'});
         }
 
         if (this.changes === 0) {
-            return res.status(404).json({ error: 'Powiązanie nie istnieje' });
+            return res.status(404).json({error: 'Powiązanie nie istnieje'});
         }
 
-        res.json({ message: 'Dane powiązania zostały zaktualizowane' });
+        res.json({message: 'Dane powiązania zostały zaktualizowane'});
     });
 });
 
 app.delete('/:userID/:sensorID', (req, res) => {
     const userID = req.params.userID;
     const sensorID = req.params.sensorID;
-
-    const query = 'DELETE FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
-    db.run(query, [userID, sensorID], function (err) {
+    //get linkage to check if user role was 1 or 2
+    const query1 = 'SELECT * FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
+    db.get(query1, [userID, sensorID], async function (err, row) {
         if (err) {
             console.error(err.message);
-            return res.status(500).json({ error: 'Błąd bazy danych' });
+            return res.status(500).json({error: 'Błąd bazy danych'});
         }
-
-        if (this.changes === 0) {
-            return res.status(404).json({ error: 'Powiązanie nie istnieje' });
+        if (!row) {
+            return res.status(404).json({error: 'Powiązanie nie istnieje'});
         }
+        const role = row.role;
+        if (role === 1) {
+            const query2 = 'DELETE FROM "User-Sensor Linkage" WHERE sensorID = ?';
+            db.run(query2, [sensorID], function (err) {
+                if (err) {
+                    console.error(err.message);
+                    return res.status(500).json({error: 'Błąd bazy danych'});
+                }
+                res.json({message: 'Powiązania zostały usunięte'});
+            });
+        } else if (role === 2) {
+            const query = 'DELETE FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
+            db.run(query, [userID, sensorID], function (err) {
+                if (err) {
+                    console.error(err.message);
+                    return res.status(500).json({error: 'Błąd bazy danych'});
+                }
 
-        res.json({ message: 'Powiązanie zostało usunięte' });
+                if (this.changes === 0) {
+                    return res.status(404).json({error: 'Powiązanie nie istnieje'});
+                }
+
+                res.json({message: 'Powiązanie zostało usunięte'});
+            });
+        }
     });
-});
 
+
+});
 
 
 app.post('/:ownerID', async (req, res) => {
     const ownerID = req.params.ownerID;
-    const { emailAddress } = req.body;
+    const {emailAddress} = req.body;
     console.log(ownerID);
     console.log(emailAddress)
+    const query = 'SELECT userID FROM Users WHERE email = ?';
 
-
-    try {
-        // Step 1: Check if the user with the provided emailAddress exists
-        let observerUser = await db.get('SELECT userID FROM Users WHERE email = ?', [emailAddress]);
-        console.log("observer: " + observerUser);
-
-        if (!observerUser || observerUser.userID === undefined) {
-            return res.status(404).json({ error: 'User not found for the provided email address' });
+    db.get(query, [emailAddress], async function (err, row) {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).json({error: 'Błąd bazy danych'});
         }
-
-        const observerID = observerUser.userID;
-        console.log("observerID: " + observerID);
-
-        // Step 2: Retrieve all sensors belonging to the ownerID
-        const sensorsQuery = 'SELECT sensorID FROM "User-Sensor Linkage" WHERE userID = ?';
-        const sensorRows = await db.all(sensorsQuery, [ownerID]);
-
-        if (sensorRows.length === 0) {
-            return res.status(404).json({ error: 'No sensors found for the provided ownerID' });
+        if (!row) {
+            return res.status(404).json({error: 'Użytkownik nie istnieje'});
         }
-
-        console.log(sensorRows)
-
-        // Step 3: Create user-sensor linkages for each sensor (if not already existing)
-        const linkagesQuery = 'INSERT INTO "User-Sensor Linkage" (userID, sensorID, role) VALUES (?, ?, ?)';
-        const linkagesPromises = sensorRows.map(async (sensorRow) => {
-            const sensorID = sensorRow.sensorID;
-
-            // Check if the linkage already exists
-            const existingLinkageQuery = 'SELECT * FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
-            const existingLinkage = await db.get(existingLinkageQuery, [observerID, sensorID]);
-
-            if (!existingLinkage) {
-                await db.run(linkagesQuery, [observerID, sensorID, 'observer']);
+        const userID = row.userID;
+        //get all sensorIDs for ownerID and then add user sensor linkage with role=2 to userID if they dont exist
+        const query2 = 'SELECT sensorID FROM "User-Sensor Linkage" WHERE userID = ? AND role = 1';
+        db.all(query2, [ownerID], async function (err, rows) {
+            if (err) {
+                console.error(err.message);
+                return res.status(500).json({error: 'Błąd bazy danych'});
             }
+            const sensorIDs = rows.map(row => row.sensorID);
+            console.log(sensorIDs);
+            for (const sensorID of sensorIDs) {
+                const query3 = 'SELECT * FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
+                db.get(query3, [userID, sensorID], async function (err, row) {
+                    if (err) {
+                        console.error(err.message);
+                        return res.status(500).json({error: 'Błąd bazy danych'});
+                    }
+                    if (!row) {
+                        const query4 = 'INSERT INTO "User-Sensor Linkage" (userID, sensorID, role) VALUES (?, ?, ?)';
+                        db.run(query4, [userID, sensorID, 2], function (err) {
+                            if (err) {
+                                console.error(err.message);
+                                return res.status(500).json({error: 'Błąd bazy danych'});
+                            }
+                        });
+                    }
+                });
+            }
+            res.json({message: 'Użytkownik został dodany do powiązań'});
         });
 
-        // Wait for all linkages to be created (or checked)
-        await Promise.all(linkagesPromises);
+    });
 
-        res.status(201).json({ message: 'Observers added successfully' });
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).json({ error: 'Internal server error' });
-    }
 });
 
 
