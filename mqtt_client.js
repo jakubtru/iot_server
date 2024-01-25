@@ -58,16 +58,24 @@ function parseReadings(topic, message) {
 }
 
 function humidityService(message, sensorId) {
-    const mess = message.toString()
-    const reading = mess.split(readingSeparator)[0]
-    const timestamp = mess.split(readingSeparator)[1] + " " + mess.split(readingSeparator)[2]
+    const reading = message.toString()
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-    const query = 'INSERT INTO HumidityReadings (reading, timestamp, sensorID) VALUES (?, ?, ?)';
-    db.run(query, [reading, timestamp, sensorId], function (err) {
+    const query1 = 'SELECT * FROM Sensor WHERE sensorID = ?';
+    db.get(query1, [sensorId], (err, sensorRow) => {
         if (err) {
             console.error(err.message);
-        } else {
-            console.log(`Humidity reading saved for sensor ${sensorId}`);
+            return res.status(500).json({error: 'Database error'});
+        }
+        if (sensorRow) {
+            const query = 'INSERT INTO HumidityReadings (reading, timestamp, sensorID) VALUES (?, ?, ?)';
+            db.run(query, [reading, timestamp, sensorId], function (err) {
+                if (err) {
+                    console.error(err.message);
+                } else {
+                    console.log(`Humidity reading saved for sensor ${sensorId}`);
+                }
+            });
         }
     });
 }
@@ -77,12 +85,24 @@ function temperatureService(message, sensorId) {
     const reading = mess.split(readingSeparator)[0]
     const timestamp = mess.split(readingSeparator)[1] + " " + mess.split(readingSeparator)[2]
 
-    const query = 'INSERT INTO TemperatureReadings (reading, timestamp, sensorID) VALUES (?, ?, ?)';
-    db.run(query, [reading, timestamp, sensorId], function (err) {
+    const query1 = 'SELECT * FROM Sensor WHERE sensorID = ?';
+    db.get(query1, [sensorId], (err, sensorRow) => {
         if (err) {
             console.error(err.message);
-        } else {
-            console.log(`Temperature reading saved for sensor ${sensorId}`);
+            return res.status(500).json({error: 'Database error'});
+        }
+        if (sensorRow) {
+            const query = 'INSERT INTO TemperatureReadings (reading, timestamp, sensorID) VALUES (?, ?, ?)';
+            db.run(query, [reading, timestamp, sensorId], function (err) {
+                if (err) {
+                    console.error(err.message);
+                } else {
+                    console.log(`Temperature reading saved for sensor ${sensorId}`);
+                }
+            });
         }
     });
+
 }
+
+
