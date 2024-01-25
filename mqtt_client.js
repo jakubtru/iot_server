@@ -81,9 +81,8 @@ function humidityService(message, sensorId) {
 }
 
 function temperatureService(message, sensorId) {
-    const mess = message.toString()
-    const reading = mess.split(readingSeparator)[0]
-    const timestamp = mess.split(readingSeparator)[1] + " " + mess.split(readingSeparator)[2]
+    const reading = message.toString()
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
     const query1 = 'SELECT * FROM Sensor WHERE sensorID = ?';
     db.get(query1, [sensorId], (err, sensorRow) => {
@@ -104,5 +103,4 @@ function temperatureService(message, sensorId) {
     });
 
 }
-
 
