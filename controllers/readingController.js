@@ -10,7 +10,7 @@ app.get('/temperature/:sensorID/daily', (req, res) => {
     const sensorID = req.params.sensorID;
     console.log('sensorID: ' + sensorID);
 
-    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%H", timestamp) AS hour FROM TemperatureReadings WHERE sensorID = ? AND timestamp > datetime("now", "-1 day") GROUP BY hour ORDER BY timestamp DESC';
+    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%H", timestamp) AS time FROM TemperatureReadings WHERE sensorID = ? AND timestamp > datetime("now", "-1 day") GROUP BY time ORDER BY timestamp DESC';
 
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
@@ -31,7 +31,7 @@ app.get('/humidity/:sensorID/daily', (req, res) => {
     const sensorID = req.params.sensorID;
     console.log('sensorID: ' + sensorID);
 
-    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%H", timestamp) AS hour FROM HumidityReadings WHERE sensorID = ? AND timestamp > datetime("now", "-1 day") GROUP BY hour ORDER BY timestamp DESC';
+    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%H", timestamp) AS time FROM HumidityReadings WHERE sensorID = ? AND timestamp > datetime("now", "-1 day") GROUP BY time ORDER BY timestamp DESC';
 
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
@@ -52,7 +52,7 @@ app.get('/temperature/:sensorID/weekly', (req, res) => {
     const sensorID = req.params.sensorID;
     console.log('sensorID: ' + sensorID);
 
-    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS day FROM TemperatureReadings WHERE sensorID = ? AND timestamp > datetime("now", "-7 day") GROUP BY day ORDER BY timestamp DESC';
+    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS time FROM TemperatureReadings WHERE sensorID = ? AND timestamp > datetime("now", "-7 day") GROUP BY time ORDER BY timestamp DESC';
 
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
@@ -68,7 +68,7 @@ app.get('/humidity/:sensorID/weekly', (req, res) => {
     const sensorID = req.params.sensorID;
     console.log('sensorID: ' + sensorID);
 
-    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS day FROM HumidityReadings WHERE sensorID = ? AND timestamp > datetime("now", "-7 day") GROUP BY day ORDER BY timestamp DESC';
+    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS time FROM HumidityReadings WHERE sensorID = ? AND timestamp > datetime("now", "-7 day") GROUP BY time ORDER BY timestamp DESC';
 
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
@@ -85,7 +85,7 @@ app.get('/temperature/:sensorID/monthly', (req, res) => {
     const sensorID = req.params.sensorID;
     console.log('sensorID: ' + sensorID);
 
-    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS day FROM TemperatureReadings WHERE sensorID = ? AND timestamp > datetime("now", "-1 month") GROUP BY day ORDER BY timestamp DESC';
+    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS time FROM TemperatureReadings WHERE sensorID = ? AND timestamp > datetime("now", "-1 month") GROUP BY time ORDER BY timestamp DESC';
 
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
@@ -106,7 +106,7 @@ app.get('/humidity/:sensorID/monthly', (req, res) => {
     const sensorID = req.params.sensorID;
     console.log('sensorID: ' + sensorID);
 
-    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS day FROM HumidityReadings WHERE sensorID = ? AND timestamp > datetime("now", "-1 month") GROUP BY day ORDER BY timestamp DESC';
+    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS time FROM HumidityReadings WHERE sensorID = ? AND timestamp > datetime("now", "-1 month") GROUP BY time ORDER BY timestamp DESC';
 
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
@@ -127,7 +127,7 @@ app.get('/temperature/:sensorID/all', (req, res) => {
     const sensorID = req.params.sensorID;
     console.log('sensorID: ' + sensorID);
 
-    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS day FROM TemperatureReadings WHERE sensorID = ? GROUP BY day ORDER BY timestamp DESC';
+    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS time FROM TemperatureReadings WHERE sensorID = ? GROUP BY time ORDER BY timestamp DESC';
 
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
@@ -143,7 +143,7 @@ app.get('/humidity/:sensorID/all', (req, res) => {
     const sensorID = req.params.sensorID;
     console.log('sensorID: ' + sensorID);
 
-    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS day FROM HumidityReadings WHERE sensorID = ? GROUP BY day ORDER BY timestamp DESC';
+    const query = 'SELECT ROUND(AVG(reading), 1) AS reading, strftime("%d-%m", timestamp) AS time FROM HumidityReadings WHERE sensorID = ? GROUP BY time ORDER BY timestamp DESC';
 
     db.all(query, [sensorID], (err, rows) => {
         if (err) {
