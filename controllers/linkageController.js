@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 
 
 app.get('', (req, res) => {
-    db.all('SELECT * FROM "User-Sensor Linkage"', (err, rows) => {
+    db.all('SELECT DISTINCT * FROM "User-Sensor Linkage"', (err, rows) => {
         if (err) {
             console.error(err.message);
             res.status(500).json({error: 'Błąd bazy danych'});
@@ -20,7 +20,7 @@ app.get('', (req, res) => {
 
 app.get('/:userID', (req, res) => {
     const userID = req.params.userID
-    const query = 'SELECT * FROM "User-Sensor Linkage" WHERE userID = ?';
+    const query = 'SELECT DISTINCT * FROM "User-Sensor Linkage" WHERE userID = ?';
     db.all(query, [userID], (err, rows) => {
         if (err) {
             console.error(err.message);
@@ -73,7 +73,7 @@ app.delete('/:userID/:sensorID', (req, res) => {
     const userID = req.params.userID;
     const sensorID = req.params.sensorID;
     //get linkage to check if user role was 1 or 2
-    const query1 = 'SELECT * FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
+    const query1 = 'SELECT DISTINCT * FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
     db.get(query1, [userID, sensorID], async function (err, row) {
         if (err) {
             console.error(err.message);
@@ -130,7 +130,7 @@ app.post('/:ownerID', async (req, res) => {
         }
         const userID = row.userID;
         //get all sensorIDs for ownerID and then add user sensor linkage with role=2 to userID if they dont exist
-        const query2 = 'SELECT sensorID FROM "User-Sensor Linkage" WHERE userID = ? AND role = 1';
+        const query2 = 'SELECT sensorID DISTINCT FROM "User-Sensor Linkage" WHERE userID = ? AND role = 1';
         db.all(query2, [ownerID], async function (err, rows) {
             if (err) {
                 console.error(err.message);
@@ -139,7 +139,7 @@ app.post('/:ownerID', async (req, res) => {
             const sensorIDs = rows.map(row => row.sensorID);
             console.log(sensorIDs);
             for (const sensorID of sensorIDs) {
-                const query3 = 'SELECT * FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
+                const query3 = 'SELECT DISTINCT * FROM "User-Sensor Linkage" WHERE userID = ? AND sensorID = ?';
                 db.get(query3, [userID, sensorID], async function (err, row) {
                     if (err) {
                         console.error(err.message);
